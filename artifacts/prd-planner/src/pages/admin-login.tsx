@@ -1,95 +1,80 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useAdminLogin } from "@workspace/api-client-react";
-import { setAuthToken, getAuthToken } from "@/lib/admin-auth";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
+import { adminLogin } from "@/lib/admin-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Lock, Loader2 } from "lucide-react";
+import { Shield } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [, setLocation] = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // If already logged in, redirect to admin dashboard
-  useEffect(() => {
-    if (getAuthToken()) {
-      setLocation("/admin");
-    }
-  }, [setLocation]);
-
-  const loginMutation = useAdminLogin({
-    mutation: {
-      onSuccess: (data) => {
-        setAuthToken(data.token);
-        setLocation("/admin");
-      }
-    }
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) return;
-    loginMutation.mutate({ data: { password } });
+    
+    setLoading(true);
+    setError("");
+    try {
+      await adminLogin({ password });
+      setLocation("/admin");
+    } catch (err) {
+      setError("Invalid administrative credentials");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md shadow-lg border-border/50">
-        <CardHeader className="space-y-1 text-center pb-6">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-6 h-6 text-primary" />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="bg-card border border-border shadow-md rounded-lg overflow-hidden">
+          <div className="p-8 text-center border-b border-border bg-muted/20">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center mb-4">
+              <Shield className="w-6 h-6 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Admin Access</h1>
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Admin Access</CardTitle>
-          <CardDescription>
-            Enter the administrative password to access settings and logs.
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          
+          <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground font-bold">Authentication Key</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loginMutation.isPending}
-                required
-                className="bg-background"
-                data-testid="input-admin-password"
+                onChange={e => setPassword(e.target.value)}
+                disabled={loading}
+                className="bg-input border-border h-10"
                 autoFocus
               />
             </div>
 
-            {loginMutation.isError && (
-              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <p>Invalid password or server error.</p>
-              </div>
+            {error && (
+              <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 p-2 rounded text-center">
+                {error}
+              </p>
             )}
-          </CardContent>
-          <CardFooter className="pt-2 pb-6">
+
             <Button 
               type="submit" 
-              className="w-full" 
-              disabled={loginMutation.isPending || !password}
-              data-testid="button-admin-login"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold tracking-wider text-xs py-5"
+              disabled={loading || !password}
             >
-              {loginMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Authenticate"
-              )}
+              {loading ? <Spinner className="w-4 h-4 mr-2" /> : null}
+              {loading ? "AUTHENTICATING..." : "AUTHENTICATE"}
             </Button>
-          </CardFooter>
-        </form>
-      </Card>
+          </form>
+        </div>
+        
+        <div className="mt-6 text-center">
+          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-medium">← Return to Dashboard</Link>
+        </div>
+      </div>
     </div>
   );
 }

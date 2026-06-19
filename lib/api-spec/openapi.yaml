@@ -2,8 +2,8 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: PRD → Sprint Planner API
+  version: 0.2.0
+  description: SprintForge PRD → Sprint Planner API
 servers:
   - url: /api
     description: Base API path
@@ -139,6 +139,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /admin/prds:
+    get:
+      operationId: getAdminPrds
+      tags: [admin]
+      summary: Get all PRDs with full stats for admin table (requires auth)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: urgency
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: complexity
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: priorityLabel
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PRD admin list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminPrdRow"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /admin/sprint-config:
     get:
       operationId: getSprintConfig
@@ -237,6 +276,20 @@ components:
         featureIdea:
           type: string
           minLength: 1
+        targetUser:
+          type: string
+        businessGoal:
+          type: string
+        deadline:
+          type: string
+        urgency:
+          type: string
+          enum: [low, medium, high, critical]
+        complexity:
+          type: string
+          enum: [low, medium, high]
+        additionalConstraints:
+          type: string
 
     UserStory:
       type: object
@@ -280,28 +333,52 @@ components:
 
     PrdSummary:
       type: object
-      required: [id, title, featureIdea, status, createdAt]
+      required: [id, title, featureIdea, status, createdAt, urgency, complexity, targetUser, avgPriorityScore, avgEffortPoints, sprintCount]
       properties:
         id:
           type: integer
         title:
           type: string
         featureIdea:
+          type: string
+        targetUser:
+          type: string
+        urgency:
+          type: string
+        complexity:
           type: string
         status:
           type: string
         createdAt:
           type: string
+        avgPriorityScore:
+          type: number
+        avgEffortPoints:
+          type: number
+        sprintCount:
+          type: integer
 
     PrdDetail:
       type: object
-      required: [id, title, featureIdea, problemStatement, goals, userStories, status, createdAt, tasks]
+      required: [id, title, featureIdea, targetUser, businessGoal, deadline, urgency, complexity, additionalConstraints, problemStatement, goals, userStories, status, createdAt, tasks]
       properties:
         id:
           type: integer
         title:
           type: string
         featureIdea:
+          type: string
+        targetUser:
+          type: string
+        businessGoal:
+          type: string
+        deadline:
+          type: string
+        urgency:
+          type: string
+        complexity:
+          type: string
+        additionalConstraints:
           type: string
         problemStatement:
           type: string
@@ -377,12 +454,22 @@ components:
 
     AdminStats:
       type: object
-      required: [totalPrds, totalTasks, tasksByRisk, tasksBySprint]
+      required: [totalPrds, totalTasks, tasksByRisk, tasksBySprint, highPriorityCount, avgPriorityScore, avgEffortScore, avgSprintCount, mostRecentDate]
       properties:
         totalPrds:
           type: integer
         totalTasks:
           type: integer
+        highPriorityCount:
+          type: integer
+        avgPriorityScore:
+          type: number
+        avgEffortScore:
+          type: number
+        avgSprintCount:
+          type: number
+        mostRecentDate:
+          type: ["string", "null"]
         tasksByRisk:
           type: array
           items:
@@ -391,6 +478,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SprintTaskCount"
+
+    AdminPrdRow:
+      type: object
+      required: [id, title, targetUser, urgency, complexity, priorityLabel, avgPriorityScore, avgEffortScore, sprintCount, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        targetUser:
+          type: string
+        urgency:
+          type: string
+        complexity:
+          type: string
+        priorityLabel:
+          type: string
+        avgPriorityScore:
+          type: number
+        avgEffortScore:
+          type: number
+        sprintCount:
+          type: integer
+        createdAt:
+          type: string
 
     AdminLog:
       type: object
@@ -404,5 +516,9 @@ components:
           type: ["integer", "null"]
         details:
           type: string
+        ipAddress:
+          type: ["string", "null"]
+        userAgent:
+          type: ["string", "null"]
         timestamp:
           type: string

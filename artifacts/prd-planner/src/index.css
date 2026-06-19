@@ -93,58 +93,75 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
-  --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
 
-  --background: 0 0% 98%;
-  --foreground: 240 10% 10%;
-  --border: 240 6% 90%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 10%;
-  --card-border: 240 6% 90%;
-  --sidebar: 240 5% 96%;
-  --sidebar-foreground: 240 10% 20%;
-  --sidebar-border: 240 6% 90%;
-  --sidebar-primary: 160 84% 39%;
+  /* Deep Dark Navy (#0f0e17 approx HSL: 247 24% 7%) */
+  --background: 247 24% 7%;
+  /* Off-white (#e8e6f0 approx HSL: 252 25% 92%) */
+  --foreground: 252 25% 92%;
+  /* Subtle dark border (#2a2840 approx HSL: 245 23% 20%) */
+  --border: 245 23% 20%;
+  
+  /* Lighter dark surface (#1a1928 approx HSL: 244 23% 13%) */
+  --card: 244 23% 13%;
+  --card-foreground: 252 25% 92%;
+  --card-border: 245 23% 20%;
+  
+  /* Sidebar uses very dark navy */
+  --sidebar: 247 24% 7%;
+  --sidebar-foreground: 252 25% 92%;
+  --sidebar-border: 245 23% 20%;
+  
+  /* Orange accent (#f97316 HSL: 24 95% 53%) */
+  --sidebar-primary: 24 95% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 5% 90%;
-  --sidebar-accent-foreground: 240 10% 10%;
-  --sidebar-ring: 160 84% 39%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 10%;
-  --popover-border: 240 6% 90%;
-  --primary: 160 84% 39%;
+  --sidebar-accent: 24 95% 53%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 24 95% 53%;
+  
+  --popover: 244 23% 13%;
+  --popover-foreground: 252 25% 92%;
+  --popover-border: 245 23% 20%;
+  
+  --primary: 24 95% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 5% 96%;
-  --secondary-foreground: 240 10% 10%;
-  --muted: 240 5% 96%;
-  --muted-foreground: 240 5% 45%;
-  --accent: 240 5% 92%;
-  --accent-foreground: 240 10% 10%;
+  
+  --secondary: 245 23% 20%;
+  --secondary-foreground: 252 25% 92%;
+  
+  /* Muted text (#8b8aa0 approx HSL: 243 12% 58%) */
+  --muted: 245 23% 20%;
+  --muted-foreground: 243 12% 58%;
+  
+  --accent: 245 23% 20%;
+  --accent-foreground: 252 25% 92%;
+  
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --input: 240 6% 85%;
-  --ring: 160 84% 39%;
   
-  --chart-1: 160 84% 39%;
-  --chart-2: 210 100% 50%;
-  --chart-3: 45 100% 50%;
-  --chart-4: 280 80% 60%;
-  --chart-5: 10 80% 55%;
+  --input: 245 23% 20%;
+  --ring: 24 95% 53%;
+  
+  /* Priority badge colors */
+  --chart-1: 142 71% 45%; /* Low: Green */
+  --chart-2: 43 96% 56%;  /* Medium: Amber */
+  --chart-3: 24 95% 53%;  /* High: Orange */
+  --chart-4: 0 84% 60%;   /* Critical: Red */
+  --chart-5: 24 95% 53%;
 
-  --app-font-sans: 'Inter', sans-serif;
+  --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'Space Mono', Menlo, monospace;
-  --radius: 0.5rem;
+  --radius: 0.25rem; /* Tighter corners for pro tool look */
   
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
   
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -154,47 +171,48 @@
 }
 
 .dark {
+  /* Using same values to force dark theme always */
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 240 10% 4%;
-  --foreground: 0 0% 98%;
-  --border: 240 5% 15%;
-  --card: 240 10% 6%;
-  --card-foreground: 0 0% 98%;
-  --card-border: 240 5% 15%;
-  --sidebar: 240 10% 6%;
-  --sidebar-foreground: 240 5% 85%;
-  --sidebar-border: 240 5% 15%;
-  --sidebar-primary: 160 84% 39%;
+  --background: 247 24% 7%;
+  --foreground: 252 25% 92%;
+  --border: 245 23% 20%;
+  --card: 244 23% 13%;
+  --card-foreground: 252 25% 92%;
+  --card-border: 245 23% 20%;
+  --sidebar: 247 24% 7%;
+  --sidebar-foreground: 252 25% 92%;
+  --sidebar-border: 245 23% 20%;
+  --sidebar-primary: 24 95% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 5% 12%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 160 84% 39%;
-  --popover: 240 10% 6%;
-  --popover-foreground: 0 0% 98%;
-  --popover-border: 240 5% 15%;
-  --primary: 160 84% 45%;
+  --sidebar-accent: 24 95% 53%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 24 95% 53%;
+  --popover: 244 23% 13%;
+  --popover-foreground: 252 25% 92%;
+  --popover-border: 245 23% 20%;
+  --primary: 24 95% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 5% 12%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 5% 12%;
-  --muted-foreground: 240 5% 60%;
-  --accent: 240 5% 15%;
-  --accent-foreground: 0 0% 98%;
+  --secondary: 245 23% 20%;
+  --secondary-foreground: 252 25% 92%;
+  --muted: 245 23% 20%;
+  --muted-foreground: 243 12% 58%;
+  --accent: 245 23% 20%;
+  --accent-foreground: 252 25% 92%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --input: 240 5% 20%;
-  --ring: 160 84% 45%;
+  --input: 245 23% 20%;
+  --ring: 24 95% 53%;
   
-  --chart-1: 160 84% 45%;
-  --chart-2: 210 100% 60%;
-  --chart-3: 45 100% 50%;
-  --chart-4: 280 80% 70%;
-  --chart-5: 10 80% 65%;
+  --chart-1: 142 71% 45%;
+  --chart-2: 43 96% 56%;
+  --chart-3: 24 95% 53%;
+  --chart-4: 0 84% 60%;
+  --chart-5: 24 95% 53%;
 }
 
 @layer base {
@@ -203,5 +221,7 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* Force dark mode */
+    color-scheme: dark;
   }
 }

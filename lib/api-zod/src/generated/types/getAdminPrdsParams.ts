@@ -6,7 +6,8 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface SprintTaskCount {
-  sprintNumber: number;
-  taskCount: number;
-}
+export type GetAdminPrdsParams = {
+urgency?: string;
+complexity?: string;
+priorityLabel?: string;
+};

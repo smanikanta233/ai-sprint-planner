@@ -6,16 +6,15 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface PrdSummary {
+export interface AdminPrdRow {
   id: number;
   title: string;
-  featureIdea: string;
   targetUser: string;
   urgency: string;
   complexity: string;
-  status: string;
-  createdAt: string;
+  priorityLabel: string;
   avgPriorityScore: number;
-  avgEffortPoints: number;
+  avgEffortScore: number;
   sprintCount: number;
+  createdAt: string;
 }

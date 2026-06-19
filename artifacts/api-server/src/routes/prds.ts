@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, avg, max, count, sql } from "drizzle-orm";
 import { db, prdsTable, tasksTable, adminLogsTable, sprintConfigTable } from "@workspace/db";
 import { CreatePrdBody, GetPrdParams, ListPrdsResponse, GetPrdResponse } from "@workspace/api-zod";
 import { openai } from "../lib/openaiClient";
@@ -9,21 +9,48 @@ import { logger } from "../lib/logger";
 const router: IRouter = Router();
 
 /**
- * GET /prds — lightweight list
+ * GET /prds — lightweight list with per-PRD aggregates
  */
 router.get("/prds", async (req, res): Promise<void> => {
-  const prds = await db
+  // Subquery: compute per-prd aggregates from tasks
+  const taskAgg = db
+    .select({
+      prdId: tasksTable.prdId,
+      avgPriorityScore: avg(tasksTable.priorityScore).as("avg_priority_score"),
+      avgEffortPoints: avg(tasksTable.effortPoints).as("avg_effort_points"),
+      sprintCount: sql<number>`MAX(${tasksTable.sprintNumber})`.as("sprint_count"),
+    })
+    .from(tasksTable)
+    .groupBy(tasksTable.prdId)
+    .as("task_agg");
+
+  const rows = await db
     .select({
       id: prdsTable.id,
       title: prdsTable.title,
       featureIdea: prdsTable.featureIdea,
+      targetUser: prdsTable.targetUser,
+      urgency: prdsTable.urgency,
+      complexity: prdsTable.complexity,
       status: prdsTable.status,
       createdAt: prdsTable.createdAt,
+      avgPriorityScore: taskAgg.avgPriorityScore,
+      avgEffortPoints: taskAgg.avgEffortPoints,
+      sprintCount: taskAgg.sprintCount,
     })
     .from(prdsTable)
+    .leftJoin(taskAgg, eq(prdsTable.id, taskAgg.prdId))
     .orderBy(desc(prdsTable.createdAt));
 
-  res.json(ListPrdsResponse.parse(prds));
+  const result = rows.map((r) => ({
+    ...r,
+    createdAt: r.createdAt.toISOString(),
+    avgPriorityScore: Number(r.avgPriorityScore ?? 0),
+    avgEffortPoints: Number(r.avgEffortPoints ?? 0),
+    sprintCount: Number(r.sprintCount ?? 0),
+  }));
+
+  res.json(ListPrdsResponse.parse(result));
 });
 
 /**
@@ -78,7 +105,15 @@ router.post("/prds", async (req, res): Promise<void> => {
     return;
   }
 
-  const { featureIdea } = parsed.data;
+  const {
+    featureIdea,
+    targetUser = "",
+    businessGoal = "",
+    deadline = "",
+    urgency = "medium",
+    complexity = "medium",
+    additionalConstraints = "",
+  } = parsed.data;
 
   // Fetch current sprint config (velocity)
   const configs = await db.select().from(sprintConfigTable).limit(1);
@@ -86,7 +121,20 @@ router.post("/prds", async (req, res): Promise<void> => {
 
   req.log.info({ featureIdea: featureIdea.slice(0, 80) }, "Generating PRD via GPT-4o");
 
-  const systemPrompt = `You are a senior product manager and engineering lead. Given a feature idea, generate a structured PRD and engineering task breakdown in valid JSON.
+  // Build a rich context string for the prompt
+  const contextLines = [
+    `Feature: ${featureIdea}`,
+    targetUser ? `Target User: ${targetUser}` : null,
+    businessGoal ? `Business Goal: ${businessGoal}` : null,
+    deadline ? `Deadline / Sprint Expectation: ${deadline}` : null,
+    urgency ? `Urgency: ${urgency}` : null,
+    complexity ? `Complexity: ${complexity}` : null,
+    additionalConstraints ? `Additional Constraints: ${additionalConstraints}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const systemPrompt = `You are a senior product manager and engineering lead. Given a feature specification, generate a structured PRD and engineering task breakdown in valid JSON.
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -108,10 +156,11 @@ Return ONLY valid JSON with this exact structure:
 }
 
 Guidelines:
-- Generate 6-12 engineering tasks covering all necessary layers (database schema, API endpoints, frontend UI, tests, devops if needed)
+- Generate 6-12 engineering tasks covering all necessary layers
 - Write descriptions with at least 10 words
 - Dependencies should be empty arrays (they will be inferred automatically)
-- Effort points: 1=trivial, 3=small, 5=medium, 8=large, 13=very large`;
+- Effort points: 1=trivial, 3=small, 5=medium, 8=large, 13=very large
+- Factor in the urgency and complexity when estimating effort and scope`;
 
   let gptResult: {
     title: string;
@@ -127,7 +176,7 @@ Guidelines:
       max_tokens: 4000,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: `Feature idea: ${featureIdea}` },
+        { role: "user", content: contextLines },
       ],
       response_format: { type: "json_object" },
     });
@@ -154,6 +203,12 @@ Guidelines:
     .values({
       featureIdea,
       title: gptResult.title,
+      targetUser,
+      businessGoal,
+      deadline,
+      urgency,
+      complexity,
+      additionalConstraints,
       problemStatement: gptResult.problemStatement,
       goals: gptResult.goals,
       userStories: gptResult.userStories,
