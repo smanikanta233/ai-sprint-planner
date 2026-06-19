@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
+export interface PrdSummary {
+  id: number;
+  title: string;
+  featureIdea: string;
   status: string;
+  createdAt: string;
 }

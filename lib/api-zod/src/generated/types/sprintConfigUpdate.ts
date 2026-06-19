@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface SprintConfigUpdate {
+  /** @minimum 1 */
+  sprintLengthDays?: number;
+  /** @minimum 1 */
+  velocityPoints?: number;
 }
