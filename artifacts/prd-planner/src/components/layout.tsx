@@ -16,7 +16,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="bg-primary p-1 rounded-sm flex items-center justify-center">
             <Square className="w-4 h-4 text-primary-foreground fill-current" />
           </div>
-          <span className="font-bold text-sm tracking-tight">SprintForge</span>
+          <span className="font-bold text-sm tracking-tight">PRD Sprint Planner</span>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-4 flex flex-col gap-1">
