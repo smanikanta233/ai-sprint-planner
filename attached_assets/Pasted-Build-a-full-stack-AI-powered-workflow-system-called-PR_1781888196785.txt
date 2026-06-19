@@ -1,0 +1,70 @@
+Build a full-stack AI-powered workflow system called "PRD → Sprint Planner."
+
+PURPOSE: Convert a feature idea into a structured Product Requirements Document, 
+break it into engineering tasks, score/prioritize those tasks with a deterministic 
+rule-based logic layer, and allocate them into sprints based on team velocity.
+
+STACK: React + Vite frontend, Express backend, PostgreSQL database, OpenAI GPT-4o 
+for generation.
+
+DATABASE SCHEMA (PostgreSQL):
+- prds: id (PK), feature_idea (text), title (text), problem_statement (text), 
+  goals (text), user_stories (jsonb), created_at (timestamp), status (text, default 'completed')
+- tasks: id (PK), prd_id (FK -> prds.id), task_name (text), description (text), 
+  category (text: frontend/backend/database/devops/design), effort_points (integer), 
+  priority_score (numeric), risk_level (text: low/medium/high), 
+  dependencies (jsonb, array of task ids), sprint_number (integer), created_at (timestamp)
+- sprint_config: id (PK), sprint_length_days (integer, default 14), 
+  velocity_points (integer, default 20), updated_at (timestamp) -- singleton row
+- admin_logs: id (PK), event_type (text), prd_id (integer, nullable), 
+  details (text), timestamp (timestamp default now)
+
+BACKEND API:
+- POST /api/prds: generates PRD + tasks via GPT-4o, saves both, runs Smart Logic 
+  Layer, logs 'prd_generated' to admin_logs
+- GET /api/prds: lightweight list
+- GET /api/prds/:id: full detail with tasks ordered by sprint_number
+- GET /api/admin/stats, GET/PUT /api/admin/sprint-config: ALL protected by 
+  server-side auth middleware (see ADMIN AUTH below)
+
+SMART LOGIC LAYER (separate module, e.g. server/logic/scoringEngine.js, zero AI 
+calls, fully deterministic, commented):
+1. Effort normalization → Fibonacci points (1,2,3,5,8,13)
+2. Dependency detection via keywords ("after","requires","depends on") + 
+   backend→frontend category rule
+3. Priority score = (business_value_weight * 3) + (10 - effort_points) + 
+   (dependency_count * -2) + risk_penalty
+4. Risk flagging: high if effort>=8 AND deps>=2, OR description <10 words; 
+   medium if one condition; else low
+5. Sprint allocation: greedy-fill by priority_score against velocity_points, 
+   dependency-aware
+
+FRONTEND:
+- Input page: feature idea textbox, Generate button, loading state
+- Output: 3 tabs — PRD (cards), Tasks (table w/ color-coded risk badges), 
+  Sprint Plan (Kanban by sprint)
+- History sidebar of past PRDs, clickable
+- Clearly labeled Admin link/button
+- Never render raw JSON
+
+ADMIN DASHBOARD (/admin) — AUTH MUST BE REAL, NOT COSMETIC:
+- Login form POSTs password to POST /api/admin/login, compared server-side 
+  against process.env.ADMIN_PASSWORD, returns a session token
+- Server-side middleware on EVERY /api/admin/* route validates this token, 
+  returns 401 if missing/invalid
+- Do NOT implement frontend-only checks like "if password is non-empty, allow"
+- Dashboard shows: total PRDs, total tasks, bar chart tasks-per-sprint, risk 
+  distribution chart, recent admin_logs table, editable sprint_config form
+
+GENERAL REQUIREMENTS:
+- OPENAI_API_KEY and ADMIN_PASSWORD only in Secrets, never hardcoded. 
+  ADMIN_PASSWORD must NEVER be exposed via VITE_ prefix or any frontend bundle
+- Graceful error handling everywhere (empty input, API failures, empty DB states)
+- Clean modern UI, card-based, color-coded indicators
+- Clear code organization: separate folders for routes, logic layer, db models, 
+  frontend components
+
+Build in clear stages: DB schema/scaffold → backend API + OpenAI → logic layer → 
+frontend → admin dashboard with real server-side auth → polish. After building, 
+verify: calling /api/admin/stats without auth returns 401, and the admin login 
+correctly rejects wrong passwords.
