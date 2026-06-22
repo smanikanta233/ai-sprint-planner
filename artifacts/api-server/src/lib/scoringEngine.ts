@@ -100,10 +100,9 @@ function riskPenalty(riskLevel: string): number {
 
 /**
  * 4. Risk Flagging
- * high   → (effort >= 8 AND deps >= 2) OR description < 10 words
- * medium → exactly ONE of (effort >= 8, deps >= 2) but not both,
- *          OR description is 10–15 words
- * low    → none of the above
+ * high   → effort >= 8, OR deps >= 2, OR description < 10 words (any one is enough)
+ * medium → effort >= 5 and < 8, OR dep count === 1
+ * low    → everything else
  */
 function computeRisk(
   effort: number,
@@ -111,16 +110,12 @@ function computeRisk(
   description: string
 ): "low" | "medium" | "high" {
   const wordCount = description.trim().split(/\s+/).filter((w) => w.length > 0).length;
-  const highEffort = effort >= 8;
-  const manyDeps = depCount >= 2;
-  const vagueDesc = wordCount < 10;
-  const slightlyVague = wordCount >= 10 && wordCount <= 15;
 
-  // HIGH: both effort+deps conditions met, OR description too short
-  if ((highEffort && manyDeps) || vagueDesc) return "high";
+  // HIGH: any single condition is enough
+  if (effort >= 8 || depCount >= 2 || wordCount < 10) return "high";
 
-  // MEDIUM: one of effort/deps (not both), OR description is borderline short
-  if (highEffort || manyDeps || slightlyVague) return "medium";
+  // MEDIUM: moderate effort or a single dependency
+  if ((effort >= 5 && effort < 8) || depCount === 1) return "medium";
 
   return "low";
 }
