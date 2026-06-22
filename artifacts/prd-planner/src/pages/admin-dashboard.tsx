@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAdminStats, fetchAdminPrds, fetchAdminLogs, setAdminToken } from "@/lib/admin-api";
+import { fetchAdminStats, fetchAdminPrds, fetchAdminLogs, setAdminToken, verifyAdminToken, adminLogout } from "@/lib/admin-api";
 import { Layout } from "@/components/layout";
+import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -35,42 +36,81 @@ const getPriorityColor = (p: string) => {
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
 
+  // Authentication state: null = checking, false = unauthenticated, true = verified.
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
   const [urgencyFilter, setUrgencyFilter] = useState("all");
   const [complexityFilter, setComplexityFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
+  // On mount, verify the stored token against the server. Never trust localStorage alone.
+  useEffect(() => {
+    let active = true;
+    verifyAdminToken().then((valid) => {
+      if (!active) return;
+      if (valid) {
+        setIsAuthenticated(true);
+      } else {
+        setAdminToken(null);
+        setIsAuthenticated(false);
+        setLocation("/admin/login");
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [setLocation]);
+
   const { data: stats, isError: isStatsError } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: fetchAdminStats,
-    retry: false
+    retry: false,
+    enabled: isAuthenticated === true
   });
 
-  const { data: prds } = useQuery({
+  const { data: prds, isError: isPrdsError } = useQuery({
     queryKey: ["admin-prds", urgencyFilter, complexityFilter, priorityFilter],
     queryFn: () => fetchAdminPrds({
       urgency: urgencyFilter !== "all" ? urgencyFilter : undefined,
       complexity: complexityFilter !== "all" ? complexityFilter : undefined,
       priorityLabel: priorityFilter !== "all" ? priorityFilter : undefined
     }),
-    retry: false
+    retry: false,
+    enabled: isAuthenticated === true
   });
 
-  const { data: logs } = useQuery({
+  const { data: logs, isError: isLogsError } = useQuery({
     queryKey: ["admin-logs"],
     queryFn: fetchAdminLogs,
-    retry: false
+    retry: false,
+    enabled: isAuthenticated === true
   });
 
-  if (isStatsError) {
-    setAdminToken(null);
-    setLocation("/admin/login");
-    return null;
-  }
+  // If any admin request 401s after mount (token expired/revoked server-side), bounce to login.
+  useEffect(() => {
+    if (isStatsError || isPrdsError || isLogsError) {
+      setAdminToken(null);
+      setIsAuthenticated(false);
+      setLocation("/admin/login");
+    }
+  }, [isStatsError, isPrdsError, isLogsError, setLocation]);
 
-  const handleSignOut = () => {
-    setAdminToken(null);
+  const handleSignOut = async () => {
+    await adminLogout();
+    setIsAuthenticated(false);
     setLocation("/admin/login");
   };
+
+  // While verifying, or once we know the user is not authenticated, never render the dashboard.
+  if (isAuthenticated !== true) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-32">
+          <Spinner className="w-6 h-6 text-muted-foreground" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

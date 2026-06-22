@@ -199,3 +199,19 @@ export const GetAdminLogsResponseItem = zod.object({
 export const GetAdminLogsResponse = zod.array(GetAdminLogsResponseItem)
 
 
+/**
+ * @summary Verify admin token validity (requires auth)
+ */
+export const VerifyAdminResponse = zod.object({
+  "valid": zod.boolean()
+})
+
+
+/**
+ * @summary Invalidate the current admin token (requires auth)
+ */
+export const AdminLogoutResponse = zod.object({
+  "valid": zod.boolean()
+})
+
+

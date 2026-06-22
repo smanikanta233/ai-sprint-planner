@@ -11,6 +11,7 @@ export * from './adminLoginInput';
 export * from './adminLoginResult';
 export * from './adminPrdRow';
 export * from './adminStats';
+export * from './adminVerifyResult';
 export * from './errorResponse';
 export * from './getAdminPrdsParams';
 export * from './healthStatus';

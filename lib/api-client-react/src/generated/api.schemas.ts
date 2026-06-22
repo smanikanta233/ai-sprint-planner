@@ -13,6 +13,10 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface AdminVerifyResult {
+  valid: boolean;
+}
+
 export type PrdInputUrgency = typeof PrdInputUrgency[keyof typeof PrdInputUrgency];
 
 

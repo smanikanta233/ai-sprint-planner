@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { randomBytes } from "node:crypto";
 import { logger } from "../lib/logger";
 
 // In-memory token store. Maps token → expiry timestamp.
@@ -8,8 +9,8 @@ const validTokens = new Map<string, number>();
 const TOKEN_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 export function issueAdminToken(): string {
-  const token =
-    Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  // Cryptographically secure, unguessable session token.
+  const token = randomBytes(32).toString("hex");
   validTokens.set(token, Date.now() + TOKEN_TTL_MS);
   return token;
 }

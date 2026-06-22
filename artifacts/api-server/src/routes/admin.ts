@@ -11,7 +11,7 @@ import {
   GetAdminLogsResponse,
   GetAdminPrdsResponse,
 } from "@workspace/api-zod";
-import { requireAdminAuth, issueAdminToken } from "../middlewares/adminAuth";
+import { requireAdminAuth, issueAdminToken, revokeAdminToken } from "../middlewares/adminAuth";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -69,6 +69,24 @@ router.post("/admin/login", async (req, res): Promise<void> => {
 
   req.log.info("Admin login successful");
   res.json(AdminLoginResponse.parse({ token }));
+});
+
+/**
+ * GET /admin/verify — confirm the bearer token is still valid (protected).
+ * requireAdminAuth returns 401 if not; reaching the handler means it is valid.
+ */
+router.get("/admin/verify", requireAdminAuth, (_req, res): void => {
+  res.json({ valid: true });
+});
+
+/**
+ * POST /admin/logout — invalidate the current token server-side (protected)
+ */
+router.post("/admin/logout", requireAdminAuth, (req, res): void => {
+  const token = (req.headers.authorization ?? "").slice(7);
+  revokeAdminToken(token);
+  req.log.info("Admin logged out");
+  res.json({ valid: false });
 });
 
 /**

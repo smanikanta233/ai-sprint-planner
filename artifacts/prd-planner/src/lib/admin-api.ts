@@ -1,4 +1,4 @@
-import { getAdminStats, getAdminPrds, getAdminLogs, getSprintConfig, updateSprintConfig, adminLogin as rawAdminLogin } from "@workspace/api-client-react";
+import { getAdminStats, getAdminPrds, getAdminLogs, getSprintConfig, updateSprintConfig, adminLogin as rawAdminLogin, verifyAdmin, adminLogout as rawAdminLogout } from "@workspace/api-client-react";
 import type { AdminLoginInput, GetAdminPrdsParams, SprintConfigUpdate } from "@workspace/api-client-react";
 
 export function getAdminToken(): string | null {
@@ -22,6 +22,32 @@ export async function adminLogin(input: AdminLoginInput) {
   const res = await rawAdminLogin(input);
   setAdminToken(res.token);
   return res;
+}
+
+/**
+ * Verify the stored token against the server. Returns true only if the
+ * server confirms it (200); any error (401, network, no token) returns false.
+ */
+export async function verifyAdminToken(): Promise<boolean> {
+  if (!getAdminToken()) return false;
+  try {
+    const res = await verifyAdmin({ headers: getAdminAuthHeaders() });
+    return res.valid === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Invalidate the token server-side, then clear it locally regardless of outcome.
+ */
+export async function adminLogout(): Promise<void> {
+  try {
+    await rawAdminLogout({ headers: getAdminAuthHeaders() });
+  } catch {
+    // even if the server call fails, we still clear the local token below
+  }
+  setAdminToken(null);
 }
 
 export async function fetchAdminStats() {

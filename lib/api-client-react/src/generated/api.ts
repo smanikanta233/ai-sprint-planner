@@ -25,6 +25,7 @@ import type {
   AdminLoginResult,
   AdminPrdRow,
   AdminStats,
+  AdminVerifyResult,
   ErrorResponse,
   GetAdminPrdsParams,
   HealthStatus,
@@ -806,4 +807,151 @@ export function useGetAdminLogs<TData = Awaited<ReturnType<typeof getAdminLogs>>
 
 
 
+
+export const getVerifyAdminUrl = () => {
+
+
+
+
+  return `/api/admin/verify`
+}
+
+/**
+ * @summary Verify admin token validity (requires auth)
+ */
+export const verifyAdmin = async ( options?: RequestInit): Promise<AdminVerifyResult> => {
+
+  return customFetch<AdminVerifyResult>(getVerifyAdminUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVerifyAdminQueryKey = () => {
+    return [
+    `/api/admin/verify`
+    ] as const;
+    }
+
+
+export const getVerifyAdminQueryOptions = <TData = Awaited<ReturnType<typeof verifyAdmin>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVerifyAdminQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof verifyAdmin>>> = ({ signal }) => verifyAdmin({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof verifyAdmin>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VerifyAdminQueryResult = NonNullable<Awaited<ReturnType<typeof verifyAdmin>>>
+export type VerifyAdminQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Verify admin token validity (requires auth)
+ */
+
+export function useVerifyAdmin<TData = Awaited<ReturnType<typeof verifyAdmin>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVerifyAdminQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminLogoutUrl = () => {
+
+
+
+
+  return `/api/admin/logout`
+}
+
+/**
+ * @summary Invalidate the current admin token (requires auth)
+ */
+export const adminLogout = async ( options?: RequestInit): Promise<AdminVerifyResult> => {
+
+  return customFetch<AdminVerifyResult>(getAdminLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminLogoutMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminLogout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminLogout>>, TError,void, TContext> => {
+
+const mutationKey = ['adminLogout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminLogout>>, void> = () => {
+
+
+          return  adminLogout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof adminLogout>>>
+
+    export type AdminLogoutMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Invalidate the current admin token (requires auth)
+ */
+export const useAdminLogout = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminLogout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminLogout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAdminLogoutMutationOptions(options));
+    }
 
