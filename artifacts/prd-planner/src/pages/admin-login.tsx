@@ -24,6 +24,7 @@ export default function AdminLogin() {
       setLocation("/admin");
     } catch (err) {
       setError("Invalid administrative credentials");
+      setPassword("");
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ export default function AdminLogin() {
         </div>
         
         <div className="mt-6 text-center">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-medium">← Return to Dashboard</Link>
+          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-medium">← Back to App</Link>
         </div>
       </div>
     </div>
