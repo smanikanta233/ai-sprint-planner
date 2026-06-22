@@ -185,6 +185,12 @@ const DOC_TEST_KEYWORDS = [
   "monitor",
   "post-launch",
   "update project",
+  "user testing",
+  "conduct test",
+  "user test",
+  "gather feedback",
+  "feedback session",
+  "usability test",
 ];
 
 function docTestPenalty(taskName: string, description: string): number {
