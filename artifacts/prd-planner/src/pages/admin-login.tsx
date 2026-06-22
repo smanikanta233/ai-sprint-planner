@@ -73,7 +73,7 @@ export default function AdminLogin() {
         </div>
         
         <div className="mt-6 text-center">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-medium">← Back to App</Link>
+          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline">Not an Admin? Return to Planner</Link>
         </div>
       </div>
     </div>
