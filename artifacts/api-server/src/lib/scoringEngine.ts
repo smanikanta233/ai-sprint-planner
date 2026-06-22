@@ -100,25 +100,28 @@ function riskPenalty(riskLevel: string): number {
 
 /**
  * 4. Risk Flagging
- * high  → effort >= 8 AND deps >= 2, OR description < 10 words
- * medium → one condition met
- * low   → none
+ * high   → (effort >= 8 AND deps >= 2) OR description < 10 words
+ * medium → exactly ONE of (effort >= 8, deps >= 2) but not both,
+ *          OR description is 10–15 words
+ * low    → none of the above
  */
 function computeRisk(
   effort: number,
   depCount: number,
   description: string
 ): "low" | "medium" | "high" {
-  const wordCount = description.trim().split(/\s+/).length;
+  const wordCount = description.trim().split(/\s+/).filter((w) => w.length > 0).length;
   const highEffort = effort >= 8;
   const manyDeps = depCount >= 2;
   const vagueDesc = wordCount < 10;
+  const slightlyVague = wordCount >= 10 && wordCount <= 15;
 
-  const highConditions = [highEffort && manyDeps, vagueDesc].filter(Boolean).length;
-  const medConditions = [highEffort, manyDeps].filter(Boolean).length;
+  // HIGH: both effort+deps conditions met, OR description too short
+  if ((highEffort && manyDeps) || vagueDesc) return "high";
 
-  if (highConditions >= 1 || vagueDesc) return "high";
-  if (medConditions === 1) return "medium";
+  // MEDIUM: one of effort/deps (not both), OR description is borderline short
+  if (highEffort || manyDeps || slightlyVague) return "medium";
+
   return "low";
 }
 
@@ -169,6 +172,25 @@ function allocateSprints(tasks: ScoredTask[], velocityPoints: number): ScoredTas
 }
 
 /**
+ * 4b. Doc/Test task detection
+ * Tasks about documentation or testing come after implementation — apply a
+ * priority penalty so the sprint allocator naturally places them later.
+ */
+const DOC_TEST_KEYWORDS = [
+  "documentation",
+  "test case",
+  "write test",
+  "prepare doc",
+  " qa ",
+  "quality assurance",
+];
+
+function docTestPenalty(taskName: string, description: string): number {
+  const combined = `${taskName} ${description}`.toLowerCase();
+  return DOC_TEST_KEYWORDS.some((kw) => combined.includes(kw)) ? -5 : 0;
+}
+
+/**
  * Main entry point: score and allocate tasks.
  */
 export function processTasks(
@@ -192,7 +214,8 @@ export function processTasks(
       businessValue * 3 +
       (10 - task.effortPoints) +
       task.dependencies.length * -2 +
-      riskPenalty(risk);
+      riskPenalty(risk) +
+      docTestPenalty(task.taskName, task.description);
 
     return {
       ...task,

@@ -219,7 +219,7 @@ export default function PrdDetail() {
             <div className="flex gap-6 overflow-x-auto pb-4 items-start">
               {sprintKeys.map(sprintNum => {
                 const tasks = sprints[sprintNum];
-                const totalPoints = tasks.reduce((sum, t) => sum + t.effortPoints, 0);
+                const totalPoints = tasks.reduce((sum, t) => sum + Number(t.effortPoints), 0);
                 return (
                   <div key={sprintNum} className="w-[320px] flex-shrink-0 flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-sm">
                     <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">

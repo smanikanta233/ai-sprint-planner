@@ -1,0 +1,41 @@
+Fix the following 3 issues in this app:
+
+FIX 1 — Sprint points label is hardcoded, not dynamic.
+In the Sprint Plan tab (Kanban view), each sprint column header shows a points 
+total (e.g. "16 PTS"). This value appears to be hardcoded or incorrectly 
+calculated — it shows the same value for all sprints regardless of the actual 
+sum of effort_points of tasks inside that sprint. Fix it so the sprint column 
+header dynamically calculates and displays the REAL sum of effort_points of all 
+tasks assigned to that sprint. For example, if Sprint 3 has 2 tasks with effort 
+5 and 5, it should show "10 PTS", not "16 PTS".
+
+FIX 2 — HIGH risk flag not triggering correctly.
+In the scoring engine / logic layer file, the risk flagging rule should be:
+- HIGH risk if: (effort_points >= 8 AND dependency_count >= 2) OR 
+  (description word count < 10)
+- MEDIUM risk if: only ONE of those conditions is met (effort >= 8 OR 
+  deps >= 2, but not both) OR (description is between 10-15 words)
+- LOW risk: everything else
+
+Currently HIGH risk is not being assigned even when effort_points = 8 and 
+the task has dependencies. Check the exact condition in the scoring engine 
+and fix it. Make sure the comparison uses >= 8, not > 8, and that 
+dependency_count is being counted correctly (count the actual array length 
+of the dependencies field, not checking if it's null).
+
+FIX 3 — Logic ordering: documentation/test tasks should not be in Sprint 1.
+In the sprint allocation logic, tasks whose names or descriptions contain 
+keywords like "documentation", "test cases", "write tests", "prepare docs", 
+"QA" should be deprioritized — they logically come after implementation tasks. 
+Add a rule in the scoring engine that applies a priority_score penalty of -5 
+to any task where the task_name or description contains these keywords: 
+"documentation", "test case", "write test", "prepare doc", "QA", "quality 
+assurance". This will naturally push them to later sprints without hardcoding 
+their sprint number.
+
+After making all 3 fixes, verify by:
+1. Checking that sprint column headers show the correct dynamic point totals
+2. Confirming that a task with effort_points=8 and 2+ dependencies gets 
+   flagged as HIGH risk
+3. Confirming that documentation/test tasks appear in Sprint 2 or later, 
+   not Sprint 1
