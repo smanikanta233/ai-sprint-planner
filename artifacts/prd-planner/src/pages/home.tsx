@@ -20,6 +20,7 @@ export default function Home() {
   const createPrd = useCreatePrd();
 
   const [featureIdea, setFeatureIdea] = useState("");
+  const [description, setDescription] = useState("");
   const [targetUser, setTargetUser] = useState("");
   const [businessGoal, setBusinessGoal] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -37,7 +38,7 @@ export default function Home() {
     createPrd.mutate(
       {
         data: {
-          featureIdea,
+          featureIdea: description ? `${featureIdea}\n\nDetails: ${description}` : featureIdea,
           targetUser,
           businessGoal,
           deadline,
@@ -112,8 +113,8 @@ export default function Home() {
                 <Textarea
                   id="description"
                   placeholder="Detailed feature description..."
-                  value={featureIdea}
-                  onChange={e => setFeatureIdea(e.target.value)}
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
                   disabled={createPrd.isPending}
                   className="min-h-[120px] bg-input border-border resize-none"
                 />
