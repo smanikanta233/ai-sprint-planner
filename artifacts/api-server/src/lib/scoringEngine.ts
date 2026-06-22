@@ -172,17 +172,24 @@ function allocateSprints(tasks: ScoredTask[], velocityPoints: number): ScoredTas
  * priority penalty so the sprint allocator naturally places them later.
  */
 const DOC_TEST_KEYWORDS = [
+  "document",
   "documentation",
+  "update doc",
+  "project doc",
+  "write doc",
   "test case",
   "write test",
-  "prepare doc",
-  " qa ",
+  "testing",
+  "qa",
   "quality assurance",
+  "monitor",
+  "post-launch",
+  "update project",
 ];
 
 function docTestPenalty(taskName: string, description: string): number {
   const combined = `${taskName} ${description}`.toLowerCase();
-  return DOC_TEST_KEYWORDS.some((kw) => combined.includes(kw)) ? -5 : 0;
+  return DOC_TEST_KEYWORDS.some((kw) => combined.includes(kw)) ? -8 : 0;
 }
 
 /**
